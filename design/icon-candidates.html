@@ -1,0 +1,465 @@
+<title>アイコンデザイン候補</title>
+<style>
+  :root {
+    --obsidian: #132322;
+    --deep-abyss: #0e1a19;
+    --charcoal: #070f0f;
+    --mint: #edf7f5;
+    --white: #ffffff;
+    --green: #3ddc91;
+    --yellow: #ffcd48;
+    --slate: #828786;
+    --slate-on-dark: #93a09e;
+    --fog: #d0d3d3;
+    --stone: #b2b6b4;
+    --graphite: #424f4f;
+    background: var(--obsidian);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--obsidian);
+    color: var(--white);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+
+  .eyebrow {
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  h1 {
+    font-weight: 600;
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 10px 0 0;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 20px 0 0;
+    max-width: 640px;
+    font-size: 16px;
+    color: var(--slate-on-dark);
+  }
+
+  section.group {
+    margin-top: 72px;
+  }
+
+  .group-head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 640px;
+    margin-bottom: 28px;
+  }
+
+  .group-head .eyebrow {
+    color: var(--green);
+  }
+
+  .group-head h2 {
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+    color: var(--white);
+  }
+
+  .group-head p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--slate-on-dark);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--mint);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    gap: 18px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 24px -8px;
+  }
+
+  .icon-frame {
+    flex-shrink: 0;
+    width: 88px;
+    height: 88px;
+    border-radius: 21px;
+    background: var(--obsidian);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .icon-frame svg {
+    width: 72%;
+    height: 72%;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .card-body h3 {
+    margin: 0;
+    font-size: 16.5px;
+    font-weight: 600;
+    color: var(--obsidian);
+  }
+
+  .card-body p {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--slate);
+  }
+
+  .closing {
+    margin-top: 72px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 640px;
+    font-size: 14.5px;
+    color: var(--slate-on-dark);
+  }
+
+  .closing strong {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  @media (max-width: 460px) {
+    .page {
+      padding: 48px 16px 72px;
+    }
+
+    .card {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<div class="page">
+  <span class="eyebrow">Icon Candidates</span>
+  <h1>メンテナンスタイマーのアイコン候補</h1>
+  <p class="lede">
+    デジタル時計モチーフ3案・アナログ時計モチーフ3案に加えて、「タイマー=時計はベタ」という意見を踏まえた時計以外のモチーフ3案、そして追加で砂時計モチーフ3案を用意しました。すべてオリジナルの幾何学図形で構成しており、特定のOSやブランドの時計アイコンをなぞったものではありません。実際のアプリの配色（obsidian × neon pulse green）でプレビューしています。
+  </p>
+
+  <section class="group">
+    <div class="group-head">
+      <span class="eyebrow">Digital</span>
+      <h2>デジタル時計モチーフ</h2>
+      <p>針を使わず、数字・バー・ドットなど「表示装置」的な語彙で時間を伝える3案です。</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="LEDカウントダウンのアイコン">
+            <rect x="16" y="26" width="68" height="48" rx="12" fill="none" stroke="#3ddc91" stroke-width="6" />
+            <rect x="26" y="38" width="16" height="24" rx="4" fill="#3ddc91" />
+            <rect x="58" y="38" width="16" height="24" rx="4" fill="#3ddc91" />
+            <circle cx="50" cy="44" r="3" fill="#3ddc91" />
+            <circle cx="50" cy="56" r="3" fill="#3ddc91" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>LEDカウントダウン</h3>
+          <p>LCD画面に浮かぶ表示をイメージした、2桁+コロンのシンプルなモチーフ。小さいサイズでも「時間を表示する道具」だと一目で伝わり、視認性が高いのが強みです。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="レベルメーターのアイコン">
+            <rect x="22" y="27" width="24" height="9" rx="4.5" fill="none" stroke="#7c8b89" stroke-width="3" />
+            <rect x="22" y="42" width="38" height="9" rx="4.5" fill="none" stroke="#7c8b89" stroke-width="3" />
+            <rect x="22" y="57" width="52" height="9" rx="4.5" fill="none" stroke="#7c8b89" stroke-width="3" />
+            <rect x="22" y="72" width="56" height="9" rx="4.5" fill="#3ddc91" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>レベルメーター</h3>
+          <p>数字を使わず、右肩上がりのバーで「経過状況」を表現。時計というより計測機器のような佇まいで、長期間の周期を見守るこのアプリの性格に合っています。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="ドットマトリクス表示のアイコン">
+            <g>
+              <circle cx="32" cy="32" r="4" fill="#4a5957" />
+              <circle cx="46" cy="32" r="4" fill="#4a5957" />
+              <circle cx="60" cy="32" r="4" fill="#4a5957" />
+              <circle cx="74" cy="32" r="4" fill="#3ddc91" />
+              <circle cx="32" cy="46" r="4" fill="#4a5957" />
+              <circle cx="46" cy="46" r="4" fill="#4a5957" />
+              <circle cx="60" cy="46" r="4" fill="#3ddc91" />
+              <circle cx="74" cy="46" r="4" fill="#4a5957" />
+              <circle cx="32" cy="60" r="4" fill="#4a5957" />
+              <circle cx="46" cy="60" r="4" fill="#3ddc91" />
+              <circle cx="60" cy="60" r="4" fill="#4a5957" />
+              <circle cx="74" cy="60" r="4" fill="#4a5957" />
+              <circle cx="32" cy="74" r="4" fill="#3ddc91" />
+              <circle cx="46" cy="74" r="4" fill="#4a5957" />
+              <circle cx="60" cy="74" r="4" fill="#4a5957" />
+              <circle cx="74" cy="74" r="4" fill="#4a5957" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>ドットマトリクス表示</h3>
+          <p>レトロな電光掲示板のようなドットの質感が特徴。緑のドットが右肩上がりに並び、進捗や成長のニュアンスも込められます。3案の中で最もディテールがあり、遊び心を出したい場合向きです。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <span class="eyebrow">Analog</span>
+      <h2>アナログ時計モチーフ</h2>
+      <p>文字盤と針の語彙を使いながら、定番から抽象度の高いものまで幅を持たせた3案です。</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="ミニマル針時計のアイコン">
+            <circle cx="50" cy="50" r="34" fill="none" stroke="#3ddc91" stroke-width="6" />
+            <line x1="50" y1="20" x2="50" y2="26" stroke="#3ddc91" stroke-width="4" stroke-linecap="round" opacity="0.5" />
+            <line x1="50" y1="74" x2="50" y2="80" stroke="#3ddc91" stroke-width="4" stroke-linecap="round" opacity="0.5" />
+            <line x1="20" y1="50" x2="26" y2="50" stroke="#3ddc91" stroke-width="4" stroke-linecap="round" opacity="0.5" />
+            <line x1="74" y1="50" x2="80" y2="50" stroke="#3ddc91" stroke-width="4" stroke-linecap="round" opacity="0.5" />
+            <line x1="50" y1="50" x2="36" y2="42" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <line x1="50" y1="50" x2="71" y2="38" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <circle cx="50" cy="50" r="4" fill="#3ddc91" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>ミニマル針時計</h3>
+          <p>誰もが一目で「時計」と認識できる、10時10分の定番アングル。針が上向きに開く形は視覚的に安定していて、シンプルさと親しみやすさを両立できます。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="プログレスリング時計のアイコン">
+            <circle cx="50" cy="50" r="34" fill="none" stroke="#5b6a68" stroke-width="6" />
+            <circle
+              cx="50"
+              cy="50"
+              r="34"
+              fill="none"
+              stroke="#3ddc91"
+              stroke-width="6"
+              stroke-linecap="round"
+              stroke-dasharray="160 213.6"
+              transform="rotate(-90 50 50)"
+            />
+            <line x1="50" y1="50" x2="22" y2="50" stroke="#3ddc91" stroke-width="5" stroke-linecap="round" />
+            <circle cx="16" cy="50" r="7" fill="#3ddc91" opacity="0.25" />
+            <circle cx="16" cy="50" r="4" fill="#3ddc91" />
+            <circle cx="50" cy="50" r="4" fill="#3ddc91" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>プログレスリング時計</h3>
+          <p>文字盤に進捗リングを重ね、針の先端が「次のアラートまでの位置」を示す案。単なる時計ではなく、残り時間を見守るというアプリの核心機能そのものを図案化できます。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="デュアルリング・パルス時計のアイコン">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#5b6a68" stroke-width="3" />
+            <circle cx="50" cy="50" r="26" fill="none" stroke="#3ddc91" stroke-width="7" />
+            <circle cx="68" cy="32" r="8" fill="#3ddc91" opacity="0.22" />
+            <circle cx="68" cy="32" r="4" fill="#3ddc91" />
+            <circle cx="50" cy="50" r="9" fill="#3ddc91" opacity="0.18" />
+            <circle cx="50" cy="50" r="4" fill="#3ddc91" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>デュアルリング・パルス時計</h3>
+          <p>針を使わず、二重リングと一点のパルスドットだけで時間感を表現。もっとも抽象度が高く、「緑のパルスが生きた信号を示す」というスタイルガイドの世界観と直接つながるブランド性の強い案です。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <span class="eyebrow">Hourglass</span>
+      <h2>砂時計モチーフ（追加提案）</h2>
+      <p>
+        「メンテナンス完了 → リセット」という操作を、砂時計をひっくり返す動作そのものに重ねられる案です。数週間〜数ヶ月という長いスパンを扱うこのアプリにとって、デジタル/アナログ時計よりも自然な連想かもしれません。
+      </p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="ミニマル砂時計のアイコン">
+            <line x1="24" y1="20" x2="76" y2="20" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <line x1="24" y1="80" x2="76" y2="80" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <path
+              d="M30 24 L70 24 L50 50 L70 76 L30 76 L50 50 Z"
+              fill="none"
+              stroke="#3ddc91"
+              stroke-width="5"
+              stroke-linejoin="round"
+            />
+            <circle cx="50" cy="50" r="7" fill="#3ddc91" opacity="0.22" />
+            <circle cx="50" cy="50" r="3.5" fill="#3ddc91" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>ミニマル砂時計</h3>
+          <p>上下の三角形とネック部分の一粒の光る点だけで構成したミニマル案。中央のパルスドットは、スタイルガイドの「緑のパルスが生きた信号を示す」という世界観そのものと重なります。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="プログレス砂時計のアイコン（上に約1/3残った状態）">
+            <line x1="24" y1="20" x2="76" y2="20" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <line x1="24" y1="80" x2="76" y2="80" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <path d="M38.5 35 L61.5 35 L50 50 Z" fill="#3ddc91" />
+            <path d="M38.5 65 L61.5 65 L70 76 L30 76 Z" fill="#3ddc91" />
+            <path
+              d="M30 24 L70 24 L50 50 L70 76 L30 76 L50 50 Z"
+              fill="none"
+              stroke="#3ddc91"
+              stroke-width="5"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>プログレス砂時計</h3>
+          <p>上のチャンバーに約1/3の砂を残し、下に2/3が落ちた状態を表現。三角形の相似比で体積を計算しているので、砂の量として違和感のないバランスです。数字や針を使わずに「そろそろ交換時期」という状態を体感的に伝えられます。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="リセット砂時計のアイコン">
+            <line x1="18" y1="22" x2="58" y2="22" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <line x1="18" y1="78" x2="58" y2="78" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <path
+              d="M22 26 L54 26 L38 50 L54 74 L22 74 L38 50 Z"
+              fill="none"
+              stroke="#3ddc91"
+              stroke-width="5"
+              stroke-linejoin="round"
+            />
+            <path d="M64 20A14 14 0 1 1 86 30" fill="none" stroke="#ffcd48" stroke-width="5" stroke-linecap="round" />
+            <path d="M80 24l9 3-3 9z" fill="#ffcd48" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>リセット砂時計</h3>
+          <p>砂時計本体に、ひっくり返すことを示す小さな矢印バッジを添えた案。「リセットボタンを押す」という操作を砂時計を反転させるイメージに直接重ねられる、プロダクト独自性の高い候補です。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-head">
+      <span class="eyebrow">Alternative</span>
+      <h2>時計以外の提案</h2>
+      <p>
+        「タイマーだからって時計はベタ」という意見はもっともです。時計以外で作るなら、このアプリならではの仕組み――通知・リセットのサイクル・残量メーター――を主役にする3案を提案します。
+      </p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="ベルとパルス通知のアイコン">
+            <path
+              d="M50 20c-11 0-16 9-16 18v20c0 6-4 10-7 12h46c-3-2-7-6-7-12V38c0-9-5-18-16-18z"
+              fill="none"
+              stroke="#3ddc91"
+              stroke-width="6"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+            <path d="M42 72a8 8 0 0 0 16 0" fill="none" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <circle cx="74" cy="26" r="7" fill="#ffcd48" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>ベル + パルス通知</h3>
+          <p>「時間」ではなく「知らせが来る」ことを主役にしたモチーフ。実際にこのアプリが提供するのは通知そのものなので、機能への誠実さという点で最も分かりやすい代替案です。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="サイクル矢印のアイコン">
+            <path d="M22 34A32 32 0 1 1 78 34" fill="none" stroke="#3ddc91" stroke-width="6" stroke-linecap="round" />
+            <path d="M70 22l14 8-8 14z" fill="#3ddc91" />
+            <circle cx="50" cy="54" r="4" fill="#3ddc91" opacity="0.55" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>サイクル矢印</h3>
+          <p>登録 → 経過 → アラート → リセットという、このアプリ固有の「繰り返しサイクル」を象徴する矢印。汎用的なタイマーアプリと差別化できる、プロダクト独自性の高い案です。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="icon-frame">
+          <svg viewBox="0 0 100 100" aria-label="マイルストーンゲージのアイコン">
+            <rect x="40" y="18" width="20" height="64" rx="10" fill="none" stroke="#5b6a68" stroke-width="4" />
+            <rect x="43" y="46" width="14" height="33" rx="7" fill="#3ddc91" />
+            <line x1="60" y1="30" x2="76" y2="30" stroke="#ffcd48" stroke-width="4" stroke-linecap="round" />
+            <circle cx="76" cy="30" r="4" fill="#ffcd48" />
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>マイルストーンゲージ</h3>
+          <p>残量計のように緑のゲージが伸びていき、黄色いラインに到達すると交換時期というメタファー。数字や時計を介さず「あとどれくらいか」を体感的に伝えられます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="closing">
+    <strong>迷ったら:</strong> ブランドの世界観を強く出すなら「デュアルリング・パルス時計」、機能に忠実で誰にでも伝わりやすいのは「ベル + パルス通知」、時計を避けつつ最も視認性が高いのは「LEDカウントダウン」。そして「時間の経過」と「そろそろ交換」という2つの情報を一目で伝えたいなら、砂時計モチーフの「プログレス砂時計」が最有力候補です。気になる案があれば、そのまま
+    <code>public/pwa-icon.svg</code>
+    として仕上げます。
+  </p>
+</div>

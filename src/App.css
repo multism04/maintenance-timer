@@ -1,0 +1,318 @@
+.app {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-32) var(--spacing-16) 96px;
+  position: relative;
+  background: var(--color-obsidian-shell);
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-32);
+}
+
+.app-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eyebrow-label {
+  font-family: var(--font-aeonikfono);
+  font-weight: var(--font-weight-regular);
+  font-size: 9px;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+  color: var(--color-neon-pulse);
+}
+
+.app-header h1 {
+  font-size: var(--text-heading-sm);
+  line-height: var(--leading-heading-sm);
+}
+
+main {
+  flex: 1;
+}
+
+.empty-state {
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  padding: 48px var(--spacing-16);
+  border: 1px dashed var(--color-graphite-fill);
+  border-radius: var(--radius-cards);
+  font-size: var(--text-body-sm);
+}
+
+.item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.item-card {
+  background: var(--color-mint-frost);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-cards);
+  padding: var(--card-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  box-shadow: var(--shadow-md);
+  color: var(--color-obsidian-shell);
+}
+
+.item-card.overdue {
+  border-color: var(--color-signal-yellow);
+}
+
+.item-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+}
+
+.item-card-header h3 {
+  font-family: var(--font-aeonikfono);
+  font-weight: var(--font-weight-medium);
+  font-size: 18px;
+  color: var(--color-obsidian-shell);
+}
+
+.remaining-badge {
+  flex-shrink: 0;
+  font-family: var(--font-aeonikfono);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  padding: 5px 14px;
+  border-radius: var(--radius-tabs);
+  background: var(--color-neon-pulse);
+  color: var(--color-obsidian-shell);
+  white-space: nowrap;
+}
+
+.overdue .remaining-badge {
+  background: var(--color-signal-yellow);
+  color: var(--color-obsidian-shell);
+}
+
+.item-meta {
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  color: var(--color-slate-text);
+}
+
+.item-card-actions {
+  display: flex;
+  gap: var(--spacing-8);
+}
+
+.primary-button {
+  background: var(--color-neon-pulse);
+  color: var(--color-obsidian-shell);
+  border: none;
+  border-radius: var(--radius-buttons);
+  padding: 10px 22px;
+  font-family: var(--font-aeonik);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-body);
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.primary-button:hover {
+  filter: brightness(1.08);
+}
+
+.secondary-button {
+  background: transparent;
+  color: var(--color-pure-white);
+  border: 1.5px solid var(--color-pure-white);
+  border-radius: var(--radius-buttons);
+  padding: 10px 22px;
+  font-family: var(--font-aeonik);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Item cards sit on a light (Mint Frost) surface, so the ghost/text
+   buttons inside them need dark-on-light treatment instead of the
+   white-on-obsidian default used elsewhere (e.g. inside the modal). */
+.item-card-actions .secondary-button {
+  color: var(--color-obsidian-shell);
+  border-color: var(--color-stone-border);
+}
+
+.item-card-actions .secondary-button:hover {
+  background: rgba(19, 35, 34, 0.06);
+}
+
+.item-card-actions .secondary-button.danger {
+  color: var(--color-slate-text);
+  border-color: transparent;
+  padding-inline: 14px;
+}
+
+.item-card-actions .secondary-button.danger:hover {
+  color: var(--color-obsidian-shell);
+  background: rgba(19, 35, 34, 0.06);
+}
+
+.icon-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: var(--color-pure-white);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.icon-button:hover {
+  border-color: var(--color-signal-yellow);
+  color: var(--color-signal-yellow);
+}
+
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: max(24px, calc((100vw - 640px) / 2 + 24px));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-neon-pulse);
+  color: var(--color-obsidian-shell);
+  font-size: 26px;
+  line-height: 1;
+  box-shadow: rgba(0, 0, 0, 0.35) 0 8px 20px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.fab:hover {
+  filter: brightness(1.08);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 15, 15, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--color-charcoal);
+  color: var(--color-pure-white);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90svh;
+  overflow-y: auto;
+  border-radius: var(--radius-cards) var(--radius-cards) 0 0;
+  padding: var(--spacing-24) var(--spacing-16) 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal h2 {
+  font-size: var(--text-heading-sm);
+  line-height: var(--leading-heading-sm);
+}
+
+@media (min-width: 640px) {
+  .modal-backdrop {
+    align-items: center;
+  }
+
+  .modal {
+    border-radius: var(--radius-cards);
+  }
+}
+
+.item-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  margin-top: var(--spacing-8);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-pure-white);
+}
+
+.field input,
+.field select {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: var(--radius-smallelements);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  background: var(--color-deep-abyss);
+  color: var(--color-pure-white);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-neon-pulse);
+  box-shadow: 0 0 0 3px rgba(61, 220, 145, 0.25);
+}
+
+.inline-fields {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.inline-fields input[type='number'] {
+  width: 80px;
+}
+
+.reminder-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-8);
+}
+
+.reminder-row {
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.reminder-prefix {
+  color: var(--color-slate-text);
+  white-space: nowrap;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-8);
+}
