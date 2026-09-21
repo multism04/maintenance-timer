@@ -6,12 +6,17 @@ import { UNIT_LABELS, UNIT_OPTIONS } from '../utils/time'
 
 interface ReminderDraft {
   key: string
-  value: number
+  value: string
   unit: IntervalUnit
 }
 
 function toDrafts(reminders: ReminderConfig[]): ReminderDraft[] {
-  return reminders.map((r) => ({ key: r.id, value: r.value, unit: r.unit }))
+  return reminders.map((r) => ({ key: r.id, value: String(r.value), unit: r.unit }))
+}
+
+function parsePositiveInt(raw: string, fallback: number): number {
+  const parsed = Number.parseInt(raw, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
 
 let draftKeySeq = 0
@@ -28,14 +33,14 @@ interface ItemFormProps {
 
 export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
-  const [intervalValue, setIntervalValue] = useState(initial?.intervalValue ?? 3)
+  const [intervalValue, setIntervalValue] = useState(String(initial?.intervalValue ?? 3))
   const [intervalUnit, setIntervalUnit] = useState<IntervalUnit>(initial?.intervalUnit ?? 'month')
   const [reminders, setReminders] = useState<ReminderDraft[]>(
     initial ? toDrafts(initial.reminders) : [],
   )
 
   function addReminderRow() {
-    setReminders((prev) => [...prev, { key: nextDraftKey(), value: 1, unit: 'day' }])
+    setReminders((prev) => [...prev, { key: nextDraftKey(), value: '1', unit: 'day' }])
   }
 
   function removeReminderRow(key: string) {
@@ -51,9 +56,9 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
     if (!name.trim()) return
     onSubmit({
       name: name.trim(),
-      intervalValue,
+      intervalValue: parsePositiveInt(intervalValue, 1),
       intervalUnit,
-      reminders: reminders.map((r) => ({ value: r.value, unit: r.unit })),
+      reminders: reminders.map((r) => ({ value: parsePositiveInt(r.value, 1), unit: r.unit })),
     })
   }
 
@@ -77,7 +82,7 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
             type="number"
             min={1}
             value={intervalValue}
-            onChange={(e) => setIntervalValue(Number(e.target.value))}
+            onChange={(e) => setIntervalValue(e.target.value)}
             required
           />
           <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value as IntervalUnit)}>
@@ -100,7 +105,7 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
                 type="number"
                 min={1}
                 value={reminder.value}
-                onChange={(e) => updateReminderRow(reminder.key, { value: Number(e.target.value) })}
+                onChange={(e) => updateReminderRow(reminder.key, { value: e.target.value })}
               />
               <select
                 value={reminder.unit}
