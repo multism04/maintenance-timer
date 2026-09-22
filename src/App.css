@@ -10,6 +10,26 @@
   background: var(--color-obsidian-shell);
 }
 
+.error-boundary {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+  padding: var(--spacing-32) var(--spacing-16);
+  background: var(--color-obsidian-shell);
+  color: var(--color-pure-white);
+  text-align: left;
+}
+
+.error-boundary p {
+  color: var(--color-slate-text);
+}
+
 .app-header {
   display: flex;
   align-items: flex-start;
