@@ -1,0 +1,21 @@
+{
+  "name": "maintenance-timer-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 execute maintenance-timer-db --local --file=schema.sql",
+    "db:migrate:remote": "wrangler d1 execute maintenance-timer-db --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.0.0",
+    "@types/web-push": "^3.6.4",
+    "typescript": "~5.9.2",
+    "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

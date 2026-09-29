@@ -1,0 +1,21 @@
+name = "maintenance-timer-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "maintenance-timer-db"
+database_id = "8617446a-80dc-49f6-868b-bafec9a7f780"
+
+[triggers]
+crons = ["0 */2 * * *"]
+
+[vars]
+VAPID_SUBJECT = "mailto:multism04@gmail.com"
+VAPID_PUBLIC_KEY = "BOCBWYeZh1PEfP--1dbOnCPVvT3N58Iya-jzeQgBquWBsJNe0yGvVmG55seTbYMd-5sE4-9UWY1XrYqQeU30jYw"
+# ALLOWED_ORIGIN restricts which site the Worker accepts requests from.
+ALLOWED_ORIGIN = "https://multism04.github.io"
+
+# VAPID_PRIVATE_KEY is set separately as a secret (never checked into git):
+#   wrangler secret put VAPID_PRIVATE_KEY
