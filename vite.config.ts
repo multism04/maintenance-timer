@@ -9,6 +9,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: {
+        // The default 2 MiB limit doesn't leave much headroom; the app
+        // bundle is tiny, so this is just a safety margin, not a real cap.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       includeAssets: ['pwa-icon.svg'],
       manifest: {
         name: 'メンテナンスタイマー',

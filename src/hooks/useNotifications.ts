@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { MaintenanceItem } from '../types'
 import { addInterval, UNIT_LABELS } from '../utils/time'
+import { subscribeToPush } from '../utils/sync'
 
 const CHECK_INTERVAL_MS = 30_000
 
@@ -32,11 +33,28 @@ export function useNotificationPermission() {
     isNotificationSupported ? Notification.permission : 'denied',
   )
 
+  // Re-confirm the push subscription on every launch for a returning user
+  // who already granted permission — cheap and idempotent, and covers the
+  // case where the browser silently invalidated the old subscription.
+  useEffect(() => {
+    if (permission === 'granted') {
+      void subscribeToPush()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const requestPermission = useCallback(async () => {
     if (!isNotificationSupported) return
     try {
       const result = await Notification.requestPermission()
       setPermission(result)
+      if (result === 'granted') {
+        // Fire-and-forget: registers this device with the push backend so
+        // reminders can arrive even after the app is fully closed. The
+        // foreground check below keeps working regardless of whether this
+        // succeeds.
+        void subscribeToPush()
+      }
     } catch (error) {
       console.error('Failed to request notification permission', error)
     }

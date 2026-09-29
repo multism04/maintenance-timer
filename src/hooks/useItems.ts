@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ItemInput, MaintenanceItem } from '../types'
 import { loadItems, saveItems } from '../utils/storage'
+import { syncItems } from '../utils/sync'
+
+const SYNC_DEBOUNCE_MS = 1_000
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -11,6 +14,17 @@ export function useItems() {
 
   useEffect(() => {
     saveItems(items)
+  }, [items])
+
+  // Best-effort sync to the push backend, debounced so a burst of edits
+  // (e.g. typing) doesn't fire a request per keystroke-driven update.
+  const syncTimeoutRef = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    window.clearTimeout(syncTimeoutRef.current)
+    syncTimeoutRef.current = window.setTimeout(() => {
+      void syncItems(items)
+    }, SYNC_DEBOUNCE_MS)
+    return () => window.clearTimeout(syncTimeoutRef.current)
   }, [items])
 
   function addItem(input: ItemInput) {
