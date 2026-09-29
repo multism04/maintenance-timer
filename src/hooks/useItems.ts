@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ItemInput, MaintenanceItem } from '../types'
 import { loadItems, saveItems } from '../utils/storage'
 import { syncItems } from '../utils/sync'
-
-const SYNC_DEBOUNCE_MS = 1_000
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -16,15 +14,13 @@ export function useItems() {
     saveItems(items)
   }, [items])
 
-  // Best-effort sync to the push backend, debounced so a burst of edits
-  // (e.g. typing) doesn't fire a request per keystroke-driven update.
-  const syncTimeoutRef = useRef<number | undefined>(undefined)
+  // Best-effort sync to the push backend. items only changes on discrete
+  // actions (add/edit/delete/reset), never per keystroke, so there's no
+  // burst to debounce against — and debouncing here previously lost the
+  // sync entirely when the app was closed right after making a change,
+  // before the delayed request had a chance to fire.
   useEffect(() => {
-    window.clearTimeout(syncTimeoutRef.current)
-    syncTimeoutRef.current = window.setTimeout(() => {
-      void syncItems(items)
-    }, SYNC_DEBOUNCE_MS)
-    return () => window.clearTimeout(syncTimeoutRef.current)
+    void syncItems(items)
   }, [items])
 
   function addItem(input: ItemInput) {
