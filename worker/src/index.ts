@@ -1,4 +1,4 @@
-import webpush from 'web-push'
+import { buildPushPayload, type VapidKeys } from '@block65/webcrypto-web-push'
 
 type IntervalUnit = 'hour' | 'day' | 'month' | 'year'
 
@@ -152,10 +152,37 @@ async function handleReplaceItems(request: Request, env: Env, deviceId: string):
   return json({ ok: true }, env)
 }
 
-function configureWebPush(env: Env) {
-  webpush.setVapidDetails(env.VAPID_SUBJECT, env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY)
+// Temporary debug endpoint: sends one push directly to a device, bypassing
+// the items/due-date logic entirely, to isolate "does web-push sending work
+// at all from this Worker" from "is the cron/due-date logic finding
+// anything to send." Remove once the pipeline is confirmed working.
+async function handleTestPush(env: Env, deviceId: string): Promise<Response> {
+  const device = await env.DB.prepare('SELECT subscription FROM devices WHERE id = ?1')
+    .bind(deviceId)
+    .first<{ subscription: string }>()
+  if (!device) {
+    return json({ error: 'device not found' }, env, 404)
+  }
+
+  const sentAt = new Date().toISOString()
+  const result = await sendPush(env, device.subscription, {
+    title: 'テスト通知',
+    body: `送信時刻: ${sentAt}`,
+    tag: `debug-test-push-${Date.now()}`,
+  })
+  return json({ ok: result === 'sent', result, sentAt }, env, result === 'sent' ? 200 : 500)
 }
 
+// web-push (the Node-oriented npm package) builds and sends the request
+// itself via Node's `https.request` and `crypto.createECDH`, neither of
+// which Workers' nodejs_compat fully implements — confirmed live via
+// wrangler tail ("[unenv] https.request is not implemented yet!"). Every
+// push send was failing (or, worse, silently producing an undecryptable
+// payload the push service accepts but the device can't open) since
+// nothing surfaced an error until a debug endpoint was added to test this
+// in isolation. @block65/webcrypto-web-push builds the same RFC 8291
+// VAPID-signed, encrypted request using only the Web Crypto API, which
+// Workers fully supports natively — no Node polyfill involved.
 async function sendPush(
   env: Env,
   subscriptionJson: string,
@@ -163,19 +190,30 @@ async function sendPush(
 ): Promise<'sent' | 'gone' | 'failed'> {
   try {
     const subscription = JSON.parse(subscriptionJson)
-    await webpush.sendNotification(subscription, JSON.stringify(payload))
+    const vapid: VapidKeys = {
+      subject: env.VAPID_SUBJECT,
+      publicKey: env.VAPID_PUBLIC_KEY,
+      privateKey: env.VAPID_PRIVATE_KEY,
+    }
+    const requestInit = await buildPushPayload(
+      { data: JSON.stringify(payload), options: { ttl: 60 * 60 } },
+      subscription,
+      vapid,
+    )
+    const response = await fetch(subscription.endpoint, requestInit)
+    if (response.status === 404 || response.status === 410) return 'gone'
+    if (!response.ok) {
+      console.error('Push send failed', response.status, await response.text())
+      return 'failed'
+    }
     return 'sent'
   } catch (error) {
-    const statusCode = (error as { statusCode?: number }).statusCode
-    if (statusCode === 404 || statusCode === 410) return 'gone'
     console.error('Push send failed', error)
     return 'failed'
   }
 }
 
 async function runDueCheck(env: Env): Promise<void> {
-  configureWebPush(env)
-
   const { results } = await env.DB.prepare(
     `SELECT items.*, devices.subscription as subscription
      FROM items JOIN devices ON items.device_id = devices.id`,
@@ -248,7 +286,7 @@ export default {
     }
 
     const url = new URL(request.url)
-    const match = url.pathname.match(/^\/devices\/([^/]+)\/(subscribe|items)$/)
+    const match = url.pathname.match(/^\/devices\/([^/]+)\/(subscribe|items|test-push)$/)
     if (!match) {
       return json({ error: 'not found' }, env, 404)
     }
@@ -256,6 +294,9 @@ export default {
 
     if (resource === 'subscribe' && request.method === 'POST') {
       return handleSubscribe(request, env, deviceId)
+    }
+    if (resource === 'test-push' && request.method === 'POST') {
+      return handleTestPush(env, deviceId)
     }
     // POST is what navigator.sendBeacon() requires (used so the sync
     // survives the page being torn down); PUT is kept for the fetch()
