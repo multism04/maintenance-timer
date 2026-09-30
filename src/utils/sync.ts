@@ -48,20 +48,37 @@ export async function syncSubscription(subscription: PushSubscription): Promise<
 }
 
 export async function syncItems(items: MaintenanceItem[]): Promise<void> {
+  const payload = JSON.stringify(
+    items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      intervalValue: item.intervalValue,
+      intervalUnit: item.intervalUnit,
+      baseDate: item.baseDate,
+      reminders: item.reminders,
+    })),
+  )
+  const url = `${PUSH_API_BASE}/devices/${getDeviceId()}/items`
+
+  // sendBeacon queues the request with the browser/OS network stack so it
+  // survives the page being torn down (e.g. swiped away from Android's
+  // recent-apps list right after making a change) — a plain fetch() offers
+  // no such guarantee and was confirmed to lose syncs in exactly that case.
+  // It only supports POST, so the Worker's /items route accepts POST too.
+  // The blob is typed text/plain (a CORS-safelisted content type) rather
+  // than application/json purely to avoid a preflight OPTIONS round trip —
+  // there's very little time left to complete one in this scenario. The
+  // Worker parses the body as JSON regardless of the declared type.
+  if (navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: 'text/plain' })
+    if (navigator.sendBeacon(url, blob)) return
+  }
+
   try {
-    await fetch(`${PUSH_API_BASE}/devices/${getDeviceId()}/items`, {
-      method: 'PUT',
+    await fetch(url, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          intervalValue: item.intervalValue,
-          intervalUnit: item.intervalUnit,
-          baseDate: item.baseDate,
-          reminders: item.reminders,
-        })),
-      ),
+      body: payload,
     })
   } catch (error) {
     console.error('Failed to sync items to push backend', error)

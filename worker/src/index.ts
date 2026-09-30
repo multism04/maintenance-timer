@@ -257,7 +257,10 @@ export default {
     if (resource === 'subscribe' && request.method === 'POST') {
       return handleSubscribe(request, env, deviceId)
     }
-    if (resource === 'items' && request.method === 'PUT') {
+    // POST is what navigator.sendBeacon() requires (used so the sync
+    // survives the page being torn down); PUT is kept for the fetch()
+    // fallback path and any other manual calls.
+    if (resource === 'items' && (request.method === 'POST' || request.method === 'PUT')) {
       return handleReplaceItems(request, env, deviceId)
     }
     return json({ error: 'method not allowed' }, env, 405)
