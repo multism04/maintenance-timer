@@ -152,27 +152,6 @@ async function handleReplaceItems(request: Request, env: Env, deviceId: string):
   return json({ ok: true }, env)
 }
 
-// Temporary debug endpoint: sends one push directly to a device, bypassing
-// the items/due-date logic entirely, to isolate "does web-push sending work
-// at all from this Worker" from "is the cron/due-date logic finding
-// anything to send." Remove once the pipeline is confirmed working.
-async function handleTestPush(env: Env, deviceId: string): Promise<Response> {
-  const device = await env.DB.prepare('SELECT subscription FROM devices WHERE id = ?1')
-    .bind(deviceId)
-    .first<{ subscription: string }>()
-  if (!device) {
-    return json({ error: 'device not found' }, env, 404)
-  }
-
-  const sentAt = new Date().toISOString()
-  const result = await sendPush(env, device.subscription, {
-    title: 'テスト通知',
-    body: `送信時刻: ${sentAt}`,
-    tag: `debug-test-push-${Date.now()}`,
-  })
-  return json({ ok: result === 'sent', result, sentAt }, env, result === 'sent' ? 200 : 500)
-}
-
 // web-push (the Node-oriented npm package) builds and sends the request
 // itself via Node's `https.request` and `crypto.createECDH`, neither of
 // which Workers' nodejs_compat fully implements — confirmed live via
@@ -286,7 +265,7 @@ export default {
     }
 
     const url = new URL(request.url)
-    const match = url.pathname.match(/^\/devices\/([^/]+)\/(subscribe|items|test-push)$/)
+    const match = url.pathname.match(/^\/devices\/([^/]+)\/(subscribe|items)$/)
     if (!match) {
       return json({ error: 'not found' }, env, 404)
     }
@@ -294,9 +273,6 @@ export default {
 
     if (resource === 'subscribe' && request.method === 'POST') {
       return handleSubscribe(request, env, deviceId)
-    }
-    if (resource === 'test-push' && request.method === 'POST') {
-      return handleTestPush(env, deviceId)
     }
     // POST is what navigator.sendBeacon() requires (used so the sync
     // survives the page being torn down); PUT is kept for the fetch()
