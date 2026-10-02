@@ -47,6 +47,30 @@ export async function syncSubscription(subscription: PushSubscription): Promise<
   }
 }
 
+export type PermissionState = NotificationPermission | 'unsupported'
+
+// Records a notification-permission change in the backend's push_log, to
+// learn when and how often Chrome resets it behind the user's back.
+export async function reportPermission(
+  permission: PermissionState,
+  previous: PermissionState | null,
+): Promise<void> {
+  try {
+    await fetch(`${PUSH_API_BASE}/devices/${getDeviceId()}/permission`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      keepalive: true,
+      body: JSON.stringify({
+        permission,
+        previous,
+        standalone: window.matchMedia('(display-mode: standalone)').matches,
+      }),
+    })
+  } catch (error) {
+    console.error('Failed to report notification permission', error)
+  }
+}
+
 export async function syncItems(items: MaintenanceItem[]): Promise<void> {
   const payload = JSON.stringify(
     items.map((item) => ({

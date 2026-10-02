@@ -97,6 +97,34 @@ async function handleSubscribe(request: Request, env: Env, deviceId: string): Pr
   return json({ ok: true }, env)
 }
 
+const PERMISSION_VALUES = new Set(['granted', 'denied', 'default', 'unsupported'])
+
+// The app reports its notification-permission state when it changes (or on
+// first launch). Chrome can reset a site's permission on its own, which
+// silently kills push delivery; recording each transition in push_log shows
+// when and how often that happens.
+async function handlePermissionEvent(request: Request, env: Env, deviceId: string): Promise<Response> {
+  let body: { permission?: unknown; previous?: unknown; standalone?: unknown }
+  try {
+    body = await request.json()
+  } catch {
+    return json({ error: 'invalid JSON body' }, env, 400)
+  }
+  const permission = String(body.permission)
+  if (!PERMISSION_VALUES.has(permission)) {
+    return json({ error: 'invalid permission value' }, env, 400)
+  }
+  const previous = PERMISSION_VALUES.has(String(body.previous)) ? String(body.previous) : 'none'
+
+  await logStatement(env, new Date().toISOString(), 'permission', {
+    deviceId,
+    result: permission,
+    detail: `previous=${previous} standalone=${body.standalone === true}`,
+  }).run()
+
+  return json({ ok: true }, env)
+}
+
 async function handleReplaceItems(request: Request, env: Env, deviceId: string): Promise<Response> {
   let items: ItemPayload[]
   try {
@@ -331,7 +359,7 @@ export default {
     }
 
     const url = new URL(request.url)
-    const match = url.pathname.match(/^\/devices\/([^/]+)\/(subscribe|items)$/)
+    const match = url.pathname.match(/^\/devices\/([^/]+)\/(subscribe|items|permission)$/)
     if (!match) {
       return json({ error: 'not found' }, env, 404)
     }
@@ -339,6 +367,9 @@ export default {
 
     if (resource === 'subscribe' && request.method === 'POST') {
       return handleSubscribe(request, env, deviceId)
+    }
+    if (resource === 'permission' && request.method === 'POST') {
+      return handlePermissionEvent(request, env, deviceId)
     }
     // POST is what navigator.sendBeacon() requires (used so the sync
     // survives the page being torn down); PUT is kept for the fetch()

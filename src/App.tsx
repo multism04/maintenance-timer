@@ -61,12 +61,25 @@ function App() {
           <span className="eyebrow-label">Track. Remind. Reset.</span>
           <h1>メンテナンスタイマー</h1>
         </div>
-        {supported && permission !== 'granted' && (
-          <button type="button" className="secondary-button" onClick={requestPermission}>
-            {permission === 'denied' ? '通知がブロックされています' : '通知を有効にする'}
-          </button>
-        )}
       </header>
+
+      {supported && permission !== 'granted' && (
+        <div className="notice-banner" role="alert">
+          <p>
+            <strong>通知がオフです。</strong>
+            このままだと、期限が来てもお知らせが届きません。
+          </p>
+          {permission === 'denied' ? (
+            <p className="notice-sub">
+              端末のChromeの設定（サイトの設定 → 通知）で、このサイトを「許可」にしてください。設定を変えてこの画面に戻ると、自動で反映されます。
+            </p>
+          ) : (
+            <button type="button" className="primary-button" onClick={requestPermission}>
+              通知を有効にする
+            </button>
+          )}
+        </div>
+      )}
 
       <main>
         <ItemList items={items} now={now} onEdit={openEditForm} onDelete={handleDelete} onReset={resetItem} />
