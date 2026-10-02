@@ -176,8 +176,18 @@ async function sendPush(
       publicKey: env.VAPID_PUBLIC_KEY,
       privateKey: env.VAPID_PRIVATE_KEY,
     }
+    // The server marks an item notified as soon as the push service accepts
+    // the message (HTTP 201) and never retries, so a message the push
+    // service later drops is lost for good. Two defaults would drop it:
+    // a 1-hour ttl (phone off or offline for an hour = gone) and normal
+    // urgency (Android defers normal-priority messages while the phone is
+    // idle in Doze, and the 1-hour ttl then expires first). A reminder
+    // should survive a day of that and wake the phone, hence these values.
     const requestInit = await buildPushPayload(
-      { data: JSON.stringify(payload), options: { ttl: 60 * 60 } },
+      {
+        data: JSON.stringify(payload),
+        options: { ttl: 24 * 60 * 60, urgency: 'high' },
+      },
       subscription,
       vapid,
     )
