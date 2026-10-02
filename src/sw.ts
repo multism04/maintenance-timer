@@ -14,9 +14,7 @@ self.addEventListener('activate', (event) => {
 })
 
 // The backend's Cron Trigger sends this when a reminder or overdue item is
-// due — this is what lets a notification show up even with the app fully
-// closed. Foreground notifications (see useNotifications.ts) go through
-// registration.showNotification() directly and never hit this handler.
+// due. It is the app's only source of notifications, open or closed.
 self.addEventListener('push', (event) => {
   let payload: { title?: string; body?: string; tag?: string } = {}
   try {

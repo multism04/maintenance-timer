@@ -3,16 +3,14 @@ import './App.css'
 import { ItemForm } from './components/ItemForm'
 import { ItemList } from './components/ItemList'
 import { useItems } from './hooks/useItems'
-import { useDueNotifications, useNotificationPermission } from './hooks/useNotifications'
+import { useNotificationPermission } from './hooks/useNotifications'
 import type { ItemInput } from './types'
 
 const TICK_INTERVAL_MS = 30_000
 
 function App() {
-  const { items, addItem, updateItem, deleteItem, resetItem, markReminderNotified, markOverdueNotified } =
-    useItems()
+  const { items, addItem, updateItem, deleteItem, resetItem } = useItems()
   const { supported, permission, requestPermission } = useNotificationPermission()
-  useDueNotifications(items, permission, markReminderNotified, markOverdueNotified)
 
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {

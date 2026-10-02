@@ -13,8 +13,6 @@ export interface MaintenanceItem {
   intervalUnit: IntervalUnit
   baseDate: string
   reminders: ReminderConfig[]
-  notifiedReminderIds: string[]
-  overdueNotified: boolean
   createdAt: string
 }
 

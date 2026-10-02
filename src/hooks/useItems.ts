@@ -32,8 +32,6 @@ export function useItems() {
       intervalUnit: input.intervalUnit,
       baseDate: now,
       reminders: input.reminders.map((r) => ({ ...r, id: generateId() })),
-      notifiedReminderIds: [],
-      overdueNotified: false,
       createdAt: now,
     }
     setItems((prev) => [...prev, newItem])
@@ -49,7 +47,6 @@ export function useItems() {
           intervalValue: input.intervalValue,
           intervalUnit: input.intervalUnit,
           reminders: input.reminders.map((r) => ({ ...r, id: generateId() })),
-          notifiedReminderIds: [],
         }
       }),
     )
@@ -62,31 +59,8 @@ export function useItems() {
   function resetItem(id: string) {
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              baseDate: new Date().toISOString(),
-              notifiedReminderIds: [],
-              overdueNotified: false,
-            }
-          : item,
+        item.id === id ? { ...item, baseDate: new Date().toISOString() } : item,
       ),
-    )
-  }
-
-  function markReminderNotified(id: string, reminderId: string) {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, notifiedReminderIds: [...item.notifiedReminderIds, reminderId] }
-          : item,
-      ),
-    )
-  }
-
-  function markOverdueNotified(id: string) {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, overdueNotified: true } : item)),
     )
   }
 
@@ -96,7 +70,5 @@ export function useItems() {
     updateItem,
     deleteItem,
     resetItem,
-    markReminderNotified,
-    markOverdueNotified,
   }
 }
