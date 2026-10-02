@@ -162,11 +162,13 @@ async function handleReplaceItems(request: Request, env: Env, deviceId: string):
 // in isolation. @block65/webcrypto-web-push builds the same RFC 8291
 // VAPID-signed, encrypted request using only the Web Crypto API, which
 // Workers fully supports natively — no Node polyfill involved.
+type SendResult = { result: 'sent' | 'gone' | 'failed'; detail: string }
+
 async function sendPush(
   env: Env,
   subscriptionJson: string,
   payload: { title: string; body: string; tag: string },
-): Promise<'sent' | 'gone' | 'failed'> {
+): Promise<SendResult> {
   try {
     const subscription = JSON.parse(subscriptionJson)
     const vapid: VapidKeys = {
@@ -180,16 +182,40 @@ async function sendPush(
       vapid,
     )
     const response = await fetch(subscription.endpoint, requestInit)
-    if (response.status === 404 || response.status === 410) return 'gone'
+    const detail = `HTTP ${response.status}`
+    if (response.status === 404 || response.status === 410) return { result: 'gone', detail }
     if (!response.ok) {
-      console.error('Push send failed', response.status, await response.text())
-      return 'failed'
+      const body = await response.text()
+      console.error('Push send failed', response.status, body)
+      return { result: 'failed', detail: `${detail} ${body.slice(0, 200)}` }
     }
-    return 'sent'
+    return { result: 'sent', detail }
   } catch (error) {
     console.error('Push send failed', error)
-    return 'failed'
+    return { result: 'failed', detail: error instanceof Error ? error.message : String(error) }
   }
+}
+
+const LOG_RETENTION_DAYS = 30
+
+function logStatement(
+  env: Env,
+  createdAt: string,
+  kind: string,
+  fields: { deviceId?: string; itemId?: string; itemName?: string; result?: string; detail?: string },
+): D1PreparedStatement {
+  return env.DB.prepare(
+    `INSERT INTO push_log (created_at, kind, device_id, item_id, item_name, result, detail)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
+  ).bind(
+    createdAt,
+    kind,
+    fields.deviceId ?? null,
+    fields.itemId ?? null,
+    fields.itemName ?? null,
+    fields.result ?? null,
+    fields.detail ?? null,
+  )
 }
 
 async function runDueCheck(env: Env): Promise<void> {
@@ -199,8 +225,10 @@ async function runDueCheck(env: Env): Promise<void> {
   ).all<ItemRow>()
 
   const now = new Date()
+  const nowIso = now.toISOString()
   const goneDeviceIds = new Set<string>()
   const updates: D1PreparedStatement[] = []
+  let attempts = 0
 
   for (const row of results) {
     if (goneDeviceIds.has(row.device_id)) continue
@@ -210,11 +238,21 @@ async function runDueCheck(env: Env): Promise<void> {
     const notifiedReminderIds: string[] = JSON.parse(row.server_notified_reminder_ids)
 
     if (now >= dueDate && !row.server_overdue_notified) {
-      const result = await sendPush(env, row.subscription, {
+      attempts++
+      const { result, detail } = await sendPush(env, row.subscription, {
         title: 'メンテナンス時期になりました',
         body: row.name,
         tag: `overdue-${row.id}`,
       })
+      updates.push(
+        logStatement(env, nowIso, 'overdue', {
+          deviceId: row.device_id,
+          itemId: row.id,
+          itemName: row.name,
+          result,
+          detail,
+        }),
+      )
       if (result === 'gone') {
         goneDeviceIds.add(row.device_id)
       } else if (result === 'sent') {
@@ -228,11 +266,21 @@ async function runDueCheck(env: Env): Promise<void> {
       if (notifiedReminderIds.includes(reminder.id)) continue
       const reminderTime = addInterval(dueDate, -reminder.value, reminder.unit)
       if (now >= reminderTime && now < dueDate) {
-        const result = await sendPush(env, row.subscription, {
+        attempts++
+        const { result, detail } = await sendPush(env, row.subscription, {
           title: 'もうすぐメンテナンス時期です',
           body: `${row.name}（あと${reminder.value}${UNIT_LABELS[reminder.unit]}）`,
           tag: `reminder-${reminder.id}`,
         })
+        updates.push(
+          logStatement(env, nowIso, 'reminder', {
+            deviceId: row.device_id,
+            itemId: row.id,
+            itemName: `${row.name}（${reminder.value}${UNIT_LABELS[reminder.unit]}前）`,
+            result,
+            detail,
+          }),
+        )
         if (result === 'gone') {
           goneDeviceIds.add(row.device_id)
           break
@@ -253,9 +301,17 @@ async function runDueCheck(env: Env): Promise<void> {
     updates.push(env.DB.prepare('DELETE FROM devices WHERE id = ?1').bind(deviceId))
   }
 
-  if (updates.length > 0) {
-    await env.DB.batch(updates)
-  }
+  // Heartbeat row on every run, so "did the cron even run?" is answerable too.
+  updates.push(
+    logStatement(env, nowIso, 'cron', {
+      result: 'ok',
+      detail: `items=${results.length} attempts=${attempts} gone=${goneDeviceIds.size}`,
+    }),
+  )
+  const cutoff = new Date(now.getTime() - LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+  updates.push(env.DB.prepare('DELETE FROM push_log WHERE created_at < ?1').bind(cutoff))
+
+  await env.DB.batch(updates)
 }
 
 export default {

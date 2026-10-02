@@ -22,12 +22,12 @@ export function ItemCard({ item, now, onEdit, onDelete, onReset }: ItemCardProps
           <span className="remaining-badge">{formatRemaining(remainingMs)}</span>
         </div>
         <p className="item-meta">
-          周期: {item.intervalValue}
-          {UNIT_LABELS[item.intervalUnit]} ／ 次回: {formatDateTime(dueDate)}
+          {item.intervalValue}
+          {UNIT_LABELS[item.intervalUnit]}ごと ／ 次回: {formatDateTime(dueDate)}
         </p>
         {item.reminders.length > 0 && (
           <p className="item-meta reminders-meta">
-            リマインダー:{' '}
+            事前通知:{' '}
             {item.reminders
               .map((r) => `${r.value}${UNIT_LABELS[r.unit]}前`)
               .join('、')}

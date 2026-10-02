@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { ItemInput, MaintenanceItem, ReminderConfig } from '../types'
 import type { IntervalUnit } from '../utils/time'
-import { UNIT_LABELS, UNIT_OPTIONS } from '../utils/time'
+import { UNIT_LABELS, UNIT_OPTIONS, addInterval, formatDateTime } from '../utils/time'
 
 interface ReminderDraft {
   key: string
@@ -10,13 +10,35 @@ interface ReminderDraft {
   unit: IntervalUnit
 }
 
+interface ReminderCheck {
+  at?: Date
+  error?: string
+  warning?: string
+}
+
+const COUNT_ERROR = '1以上の数字を入力してください'
+
 function toDrafts(reminders: ReminderConfig[]): ReminderDraft[] {
   return reminders.map((r) => ({ key: r.id, value: String(r.value), unit: r.unit }))
 }
 
-function parsePositiveInt(raw: string, fallback: number): number {
-  const parsed = Number.parseInt(raw, 10)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+// Returns null instead of guessing — silently substituting a default here
+// once saved an item with values the user never entered.
+function parseCount(raw: string): number | null {
+  const normalized = raw.normalize('NFKC').trim()
+  if (!/^\d+$/.test(normalized)) return null
+  const count = Number(normalized)
+  return count >= 1 ? count : null
+}
+
+// A new row starts one unit finer than the interval (hours-scale timers
+// default to 時間, not 日) — the old fixed 日 default produced a reminder
+// longer than an hours-scale interval, which fired on registration.
+const DEFAULT_REMINDER_UNIT: Record<IntervalUnit, IntervalUnit> = {
+  hour: 'hour',
+  day: 'hour',
+  month: 'day',
+  year: 'month',
 }
 
 let draftKeySeq = 0
@@ -39,8 +61,35 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
     initial ? toDrafts(initial.reminders) : [],
   )
 
+  // Editing never moves the start point (only a reset does), so previews for
+  // an existing item are computed from its original baseDate.
+  const now = new Date()
+  const startDate = initial ? new Date(initial.baseDate) : now
+
+  const intervalCount = parseCount(intervalValue)
+  const dueDate = intervalCount ? addInterval(startDate, intervalCount, intervalUnit) : null
+
+  const reminderChecks: ReminderCheck[] = reminders.map((reminder) => {
+    const count = parseCount(reminder.value)
+    if (!count) return { error: COUNT_ERROR }
+    if (!dueDate) return {}
+    const at = addInterval(dueDate, -count, reminder.unit)
+    if (at <= startDate) {
+      return { error: 'お知らせの間隔より短くしてください（このままだと登録した瞬間に鳴ります）' }
+    }
+    if (at <= now) {
+      return { at, warning: 'この時刻はもう過ぎているので、保存するとすぐに通知されます' }
+    }
+    return { at }
+  })
+
+  const hasErrors = !intervalCount || reminderChecks.some((check) => check.error)
+
   function addReminderRow() {
-    setReminders((prev) => [...prev, { key: nextDraftKey(), value: '1', unit: 'day' }])
+    setReminders((prev) => [
+      ...prev,
+      { key: nextDraftKey(), value: '1', unit: DEFAULT_REMINDER_UNIT[intervalUnit] },
+    ])
   }
 
   function removeReminderRow(key: string) {
@@ -53,12 +102,12 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || hasErrors || !intervalCount) return
     onSubmit({
       name: name.trim(),
-      intervalValue: parsePositiveInt(intervalValue, 1),
+      intervalValue: intervalCount,
       intervalUnit,
-      reminders: reminders.map((r) => ({ value: parsePositiveInt(r.value, 1), unit: r.unit })),
+      reminders: reminders.map((r) => ({ value: parseCount(r.value) ?? 1, unit: r.unit })),
     })
   }
 
@@ -75,62 +124,93 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
         />
       </label>
 
-      <label className="field">
-        <span>次にアラートを出すまでの期間</span>
+      <div className="field">
+        <span>お知らせの間隔</span>
         <div className="inline-fields">
           <input
-            type="number"
-            min={1}
+            type="text"
+            inputMode="numeric"
+            aria-label="お知らせの間隔（数）"
             value={intervalValue}
             onChange={(e) => setIntervalValue(e.target.value)}
-            required
           />
-          <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value as IntervalUnit)}>
+          <select
+            aria-label="お知らせの間隔（単位）"
+            value={intervalUnit}
+            onChange={(e) => setIntervalUnit(e.target.value as IntervalUnit)}
+          >
             {UNIT_OPTIONS.map((unit) => (
               <option key={unit} value={unit}>
                 {UNIT_LABELS[unit]}
               </option>
             ))}
           </select>
+          <span>ごと</span>
         </div>
-      </label>
+        {initial && (
+          <p className="field-hint">
+            数え始め: {formatDateTime(startDate)}（編集しても変わりません。リセットすると今から数え直します）
+          </p>
+        )}
+        {dueDate ? (
+          <p className="field-hint">
+            次のお知らせ: <strong>{formatDateTime(dueDate)}</strong>
+            {dueDate <= now && '（もう過ぎています）'}
+          </p>
+        ) : (
+          <p className="field-error">{COUNT_ERROR}</p>
+        )}
+      </div>
 
       <div className="field">
-        <span>リマインダー（期限より前に知らせる）</span>
+        <span>事前通知（次のお知らせより前にも知らせる）</span>
         <div className="reminder-list">
-          {reminders.map((reminder) => (
-            <div className="inline-fields reminder-row" key={reminder.key}>
-              <span className="reminder-prefix">期限の</span>
-              <input
-                type="number"
-                min={1}
-                value={reminder.value}
-                onChange={(e) => updateReminderRow(reminder.key, { value: e.target.value })}
-              />
-              <select
-                value={reminder.unit}
-                onChange={(e) => updateReminderRow(reminder.key, { unit: e.target.value as IntervalUnit })}
-              >
-                {UNIT_OPTIONS.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {UNIT_LABELS[unit]}
-                  </option>
-                ))}
-              </select>
-              <span>前</span>
-              <button
-                type="button"
-                className="icon-button danger"
-                onClick={() => removeReminderRow(reminder.key)}
-                aria-label="リマインダーを削除"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          {reminders.map((reminder, index) => {
+            const check = reminderChecks[index]
+            return (
+              <div className="reminder-item" key={reminder.key}>
+                <div className="inline-fields reminder-row">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label="事前通知（数）"
+                    value={reminder.value}
+                    onChange={(e) => updateReminderRow(reminder.key, { value: e.target.value })}
+                  />
+                  <select
+                    aria-label="事前通知（単位）"
+                    value={reminder.unit}
+                    onChange={(e) => updateReminderRow(reminder.key, { unit: e.target.value as IntervalUnit })}
+                  >
+                    {UNIT_OPTIONS.map((unit) => (
+                      <option key={unit} value={unit}>
+                        {UNIT_LABELS[unit]}
+                      </option>
+                    ))}
+                  </select>
+                  <span>前</span>
+                  <button
+                    type="button"
+                    className="icon-button danger"
+                    onClick={() => removeReminderRow(reminder.key)}
+                    aria-label="事前通知を削除"
+                  >
+                    ×
+                  </button>
+                </div>
+                {check.error && <p className="field-error">{check.error}</p>}
+                {check.at && (
+                  <p className={check.warning ? 'field-warning' : 'field-hint'}>
+                    {formatDateTime(check.at)} に通知
+                    {check.warning && `（${check.warning}）`}
+                  </p>
+                )}
+              </div>
+            )
+          })}
         </div>
         <button type="button" className="secondary-button" onClick={addReminderRow}>
-          ＋ リマインダーを追加
+          ＋ 事前通知を追加
         </button>
       </div>
 
@@ -138,7 +218,7 @@ export function ItemForm({ initial, onSubmit, onCancel }: ItemFormProps) {
         <button type="button" className="secondary-button" onClick={onCancel}>
           キャンセル
         </button>
-        <button type="submit" className="primary-button">
+        <button type="submit" className="primary-button" disabled={hasErrors}>
           {initial ? '更新する' : '登録する'}
         </button>
       </div>
