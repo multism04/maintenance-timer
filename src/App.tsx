@@ -5,6 +5,7 @@ import { ItemList } from './components/ItemList'
 import { useItems } from './hooks/useItems'
 import { useNotificationPermission } from './hooks/useNotifications'
 import type { ItemInput } from './types'
+import { formatDateTime } from './utils/time'
 
 const TICK_INTERVAL_MS = 30_000
 
@@ -84,6 +85,10 @@ function App() {
       <main>
         <ItemList items={items} now={now} onEdit={openEditForm} onDelete={handleDelete} onReset={resetItem} />
       </main>
+
+      <footer className="app-footer">
+        版: {formatDateTime(new Date(__BUILD_TIME__))} ({__BUILD_SHA__})
+      </footer>
 
       <button type="button" className="fab" onClick={openAddForm} aria-label="項目を追加">
         ＋

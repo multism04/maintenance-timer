@@ -5,6 +5,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/maintenance-timer/',
+  // Shown at the bottom of the app so it's possible to tell which build a
+  // phone is actually running (an installed PWA can keep showing an old
+  // version for a while after a deploy).
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __BUILD_SHA__: JSON.stringify((process.env.GITHUB_SHA ?? 'local').slice(0, 7)),
+  },
   plugins: [
     react(),
     VitePWA({
