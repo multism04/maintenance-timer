@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS items (
   interval_value INTEGER NOT NULL,
   interval_unit TEXT NOT NULL,
   base_date TEXT NOT NULL,
+  -- Exact due instant computed by the app; NULL for rows synced before this
+  -- column existed. On an existing database add it once with:
+  --   ALTER TABLE items ADD COLUMN due_at TEXT;
+  due_at TEXT,
   reminders TEXT NOT NULL DEFAULT '[]',
   server_overdue_notified INTEGER NOT NULL DEFAULT 0,
   server_notified_reminder_ids TEXT NOT NULL DEFAULT '[]',

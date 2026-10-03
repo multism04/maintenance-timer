@@ -1,6 +1,7 @@
 import type { MaintenanceItem } from '../types'
 import { PUSH_API_BASE, VAPID_PUBLIC_KEY } from '../config'
 import { getDeviceId } from './device'
+import { addInterval } from './time'
 
 // Best-effort sync to the push backend — the app must keep working purely
 // from localStorage if the network or the Worker is unavailable, so every
@@ -72,15 +73,28 @@ export async function reportPermission(
 }
 
 export async function syncItems(items: MaintenanceItem[]): Promise<void> {
+  // The due time and each reminder time are computed here, in the phone's
+  // timezone, and sent as instants. The Worker used to redo this month/year
+  // arithmetic in UTC, which disagrees with the phone for items registered
+  // between 00:00 and 08:59 JST on the 1st of a month (e.g. +1 month from
+  // 2/1 00:00 JST is 3/1 on the phone but 3/4 in UTC) — so the displayed
+  // due date and the notification could be days apart.
   const payload = JSON.stringify(
-    items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      intervalValue: item.intervalValue,
-      intervalUnit: item.intervalUnit,
-      baseDate: item.baseDate,
-      reminders: item.reminders,
-    })),
+    items.map((item) => {
+      const dueAt = addInterval(new Date(item.baseDate), item.intervalValue, item.intervalUnit)
+      return {
+        id: item.id,
+        name: item.name,
+        intervalValue: item.intervalValue,
+        intervalUnit: item.intervalUnit,
+        baseDate: item.baseDate,
+        dueAt: dueAt.toISOString(),
+        reminders: item.reminders.map((r) => ({
+          ...r,
+          at: addInterval(dueAt, -r.value, r.unit).toISOString(),
+        })),
+      }
+    }),
   )
   const url = `${PUSH_API_BASE}/devices/${getDeviceId()}/items`
 

@@ -6,6 +6,9 @@ interface ReminderConfig {
   id: string
   value: number
   unit: IntervalUnit
+  // Exact notification instant, computed by the app. Absent only for data
+  // synced by an older app version.
+  at?: string
 }
 
 interface ItemPayload {
@@ -14,6 +17,8 @@ interface ItemPayload {
   intervalValue: number
   intervalUnit: IntervalUnit
   baseDate: string
+  // Exact due instant, computed by the app (see the note in runDueCheck).
+  dueAt?: string
   reminders: ReminderConfig[]
 }
 
@@ -24,6 +29,7 @@ interface ItemRow {
   interval_value: number
   interval_unit: IntervalUnit
   base_date: string
+  due_at: string | null
   reminders: string
   server_overdue_notified: number
   server_notified_reminder_ids: string
@@ -137,12 +143,14 @@ async function handleReplaceItems(request: Request, env: Env, deviceId: string):
   }
 
   const existing = await env.DB.prepare(
-    'SELECT id, base_date, server_overdue_notified, server_notified_reminder_ids FROM items WHERE device_id = ?1',
+    `SELECT id, base_date, due_at, server_overdue_notified, server_notified_reminder_ids
+     FROM items WHERE device_id = ?1`,
   )
     .bind(deviceId)
     .all<{
       id: string
       base_date: string
+      due_at: string | null
       server_overdue_notified: number
       server_notified_reminder_ids: string
     }>()
@@ -153,15 +161,23 @@ async function handleReplaceItems(request: Request, env: Env, deviceId: string):
 
   for (const item of items) {
     const prev = existingById.get(item.id)
-    // A changed base_date means the item was reset — start the server's own
-    // notified-state fresh so it can fire again for the new interval.
-    const carryOver = prev && prev.base_date === item.baseDate
+    // The server's own notified-state is kept only while the item is
+    // unchanged. A new base_date means it was reset; a new due time means
+    // its interval was edited (otherwise an item already notified as
+    // overdue, then extended, would never notify again). A row stored
+    // before due_at existed has null there — treat that as unchanged so the
+    // first resync after upgrading doesn't re-fire already-sent
+    // notifications.
+    const carryOver =
+      prev &&
+      prev.base_date === item.baseDate &&
+      (prev.due_at === null || prev.due_at === (item.dueAt ?? null))
     statements.push(
       env.DB.prepare(
         `INSERT INTO items
-           (id, device_id, name, interval_value, interval_unit, base_date, reminders,
+           (id, device_id, name, interval_value, interval_unit, base_date, due_at, reminders,
             server_overdue_notified, server_notified_reminder_ids)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
       ).bind(
         item.id,
         deviceId,
@@ -169,6 +185,7 @@ async function handleReplaceItems(request: Request, env: Env, deviceId: string):
         item.intervalValue,
         item.intervalUnit,
         item.baseDate,
+        item.dueAt ?? null,
         JSON.stringify(item.reminders),
         carryOver ? prev.server_overdue_notified : 0,
         carryOver ? prev.server_notified_reminder_ids : '[]',
@@ -271,7 +288,12 @@ async function runDueCheck(env: Env): Promise<void> {
   for (const row of results) {
     if (goneDeviceIds.has(row.device_id)) continue
 
-    const dueDate = addInterval(new Date(row.base_date), row.interval_value, row.interval_unit)
+    // Prefer the instants the app computed; the Worker's own addInterval
+    // runs in UTC and only remains as a fallback for rows synced by an
+    // older app version.
+    const dueDate = row.due_at
+      ? new Date(row.due_at)
+      : addInterval(new Date(row.base_date), row.interval_value, row.interval_unit)
     const reminders: ReminderConfig[] = JSON.parse(row.reminders)
     const notifiedReminderIds: string[] = JSON.parse(row.server_notified_reminder_ids)
 
@@ -302,7 +324,9 @@ async function runDueCheck(env: Env): Promise<void> {
 
     for (const reminder of reminders) {
       if (notifiedReminderIds.includes(reminder.id)) continue
-      const reminderTime = addInterval(dueDate, -reminder.value, reminder.unit)
+      const reminderTime = reminder.at
+        ? new Date(reminder.at)
+        : addInterval(dueDate, -reminder.value, reminder.unit)
       if (now >= reminderTime && now < dueDate) {
         attempts++
         const { result, detail } = await sendPush(env, row.subscription, {
